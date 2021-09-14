@@ -10,17 +10,18 @@ const usuariosGet = async (req = request, res = response) => {
     const {limite = 5, desde = 0 } = req.query;
     const query = { estado: true};
     //Esta forma es menos optima
-    // const usuarios = await Usuario.find(query)
-    //                     .skip(Number(desde))
-    //                     .limit(Number(limite));
-    // const total = await Usuario.countDocuments(query);
+    const usuarios = await Usuario.find(query)
+                        .skip(Number(desde))
+                        .limit(Number(limite));
+    //const total = await Usuario.countDocuments(query);
     //El resultado va esperar que la promesa concluya  con las dos operaciones terminadas.
-    const [usuarios] = await Promise.all([
-        //Usuario.countDocuments(query),
-        Usuario.find(query)
-        .skip(Number(desde))
-        .limit(Number(limite))
-    ]);
+    // const [usuarios] = await Promise.all([
+    //     //Usuario.countDocuments(query),
+    //     Usuario.find(query)
+    //     .skip(Number(desde))
+    //     .limit(Number(limite))
+    // ]);
+
     res.json({
         //total,
         usuarios
