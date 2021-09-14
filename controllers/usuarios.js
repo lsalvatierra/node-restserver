@@ -1,39 +1,74 @@
 const { response, request } = require('express');
+const bcryptjs = require('bcryptjs');
+const Usuario = require('../models/usuario');
 
 
-const usuariosGet = (req = request, res = response) => {
-    const {nombre, apellido= 'Sin Apellido'} = req.query;
+
+
+const usuariosGet = async (req = request, res = response) => {
+    //const {nombre, apellido= 'Sin Apellido'} = req.query;
+    const {limite = 5, desde = 0 } = req.query;
+    const query = { estado: true};
+    //Esta forma es menos optima
+    // const usuarios = await Usuario.find(query)
+    //                     .skip(Number(desde))
+    //                     .limit(Number(limite));
+    // const total = await Usuario.countDocuments(query);
+    //El resultado va esperar que la promesa concluya  con las dos operaciones terminadas.
+    const [total, usuarios] = await Promise.all([
+        Usuario.countDocuments(query),
+        Usuario.find(query)
+        .skip(Number(desde))
+        .limit(Number(limite))
+    ]);
     res.json({
-        msg: 'Get API - controlador',
-        nombre, apellido
+        total,
+        usuarios
     })
 }; 
 
 
-const usuariosPost = (req, res = response) => {
-    const {nombre, edad} = req.body;
+const usuariosPost = async (req, res = response) => {
+  
+    const {nombre, correo, password, rol} = req.body;
+    const usuario = new Usuario({nombre, correo, password, rol });
+
+    //Encriptar la contraseña
+    const salt = bcryptjs.genSaltSync();
+    usuario.password = bcryptjs.hashSync(password, salt);
+    //Guardar en BD
+    await usuario.save();
     res.json({
-        msg: 'Post API - controlador',
-        nombre, 
-        edad
+        usuario
     })
 }; 
 
 
 
-const usuariosPut = (req, res = response) => {
-    const id = req.params.id;
+const usuariosPut = async (req, res = response) => {
+    const {id} = req.params;
+    //Se quitan los 3 primeros atributos de la desestructuración.
+    const {_id, password, google, correo, ... resto } = req.body;
+    if(password){
+        //Encriptar la contraseña
+        const salt = bcryptjs.genSaltSync();
+        resto.password = bcryptjs.hashSync(password, salt);        
+    }
+    const usuario = await Usuario.findByIdAndUpdate(id, resto);
     res.json({
-        msg: 'Put API - controlador',
-        id
+        usuario
     })
 }; 
 
 
 
-const usuariosDelete = (req, res = response) => {
+const usuariosDelete = async (req, res = response) => {
+    const {id} = req.params;
+    //fisicamente lo borramos
+    //const usuario = await Usuario.findByIdAndDelete(id);
+    const usuario = await Usuario.findByIdAndUpdate(id, {estado: false });
     res.json({
-        msg: 'Delete API - controlador'
+       usuario
     })
 }; 
 
