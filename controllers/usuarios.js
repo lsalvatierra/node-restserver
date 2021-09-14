@@ -15,14 +15,14 @@ const usuariosGet = async (req = request, res = response) => {
     //                     .limit(Number(limite));
     // const total = await Usuario.countDocuments(query);
     //El resultado va esperar que la promesa concluya  con las dos operaciones terminadas.
-    const [total, usuarios] = await Promise.all([
-        Usuario.countDocuments(query),
+    const [usuarios] = await Promise.all([
+        //Usuario.countDocuments(query),
         Usuario.find(query)
         .skip(Number(desde))
         .limit(Number(limite))
     ]);
     res.json({
-        total,
+        //total,
         usuarios
     })
 }; 
